@@ -2,12 +2,12 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>KelimeMatik - Türkçe Kelime & Mantık Bulmacası</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>KelimeMatik Pro</title>
     <style>
         :root {
             --bg-color: #121213;
-            --card-bg: #1a1a1b;
+            --card-bg: #1e1e1f;
             --text-color: #ffffff;
             --border-color: #3a3a3c;
             --correct-color: #538d4e;
@@ -24,6 +24,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         body {
@@ -31,73 +32,100 @@
             color: var(--text-color);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             align-items: center;
-            min-height: 100vh;
-            padding: 10px;
-            overflow-x: hidden;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* Üst Menü */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 500px;
-            padding: 10px 0;
+            max-width: 600px;
+            padding: 15px 20px;
             border-bottom: 1px solid var(--border-color);
+            background: var(--bg-color);
         }
 
         h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            background: linear-gradient(45deg, #4caf50, #2196f3);
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, #ffffff, #aaaaaa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .header-btns {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            align-items: center;
         }
 
         .icon-btn {
             background: none;
             border: none;
             color: var(--text-color);
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             cursor: pointer;
             padding: 5px;
-            border-radius: 5px;
-            transition: background 0.2s;
+            transition: 0.2s opacity;
         }
 
-        .icon-btn:hover {
-            background-color: var(--border-color);
+        .icon-btn:active { transform: scale(0.9); }
+        .icon-btn.used { opacity: 0.3; pointer-events: none; }
+
+        .lang-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
+        /* Oyun Modu Seçimi */
         .mode-container {
             display: flex;
-            gap: 10px;
-            margin: 10px 0;
+            gap: 15px;
+            margin: 15px 0;
+            background: var(--card-bg);
+            padding: 5px;
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
         }
 
         .mode-btn {
-            padding: 6px 16px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-color);
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #888;
             border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: 0.3s all;
         }
 
         .mode-btn.active {
             background: #2196f3;
-            border-color: #2196f3;
+            color: white;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.4);
+        }
+
+        /* Oyun Tahtası */
+        .board-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
         }
 
         #game-board {
@@ -105,9 +133,9 @@
             grid-template-rows: repeat(6, 1fr);
             grid-gap: 6px;
             width: 100%;
-            max-width: 350px;
-            height: 420px;
-            margin: 10px auto;
+            max-width: 380px;
+            padding: 10px;
+            aspect-ratio: 5/6;
         }
 
         .row {
@@ -120,61 +148,40 @@
             width: 100%;
             height: 100%;
             border: 2px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: bold;
             text-transform: uppercase;
-            background-color: transparent;
-            transition: transform 0.15s ease-in-out;
+            background-color: var(--bg-color);
+            transition: border-color 0.1s;
         }
 
-        .tile[data-state="pop"] {
-            animation: pop 0.1s ease-in-out;
-            border-color: #565758;
-        }
+        .tile[data-state="pop"] { animation: pop 0.15s ease-out; border-color: #787c7e; }
+        .tile[data-state="correct"] { background: var(--correct-color); border-color: var(--correct-color); color: white; box-shadow: 0 0 10px rgba(83, 141, 78, 0.4); }
+        .tile[data-state="present"] { background: var(--present-color); border-color: var(--present-color); color: white; }
+        .tile[data-state="absent"] { background: var(--absent-color); border-color: var(--absent-color); color: white; }
 
-        .tile[data-state="correct"] {
-            background-color: var(--correct-color);
-            border-color: var(--correct-color);
-            color: white;
-        }
+        .flip { animation: flip 0.6s ease forwards; }
+        .shake { animation: shake 0.5s; }
 
-        .tile[data-state="present"] {
-            background-color: var(--present-color);
-            border-color: var(--present-color);
-            color: white;
-        }
-
-        .tile[data-state="absent"] {
-            background-color: var(--absent-color);
-            border-color: var(--absent-color);
-            color: white;
-        }
-
-        .flip {
-            animation: flip 0.5s ease forwards;
-        }
-
-        .shake {
-            animation: shake 0.5s;
-        }
-
+        /* Klavye */
         #keyboard {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-bottom: 10px;
+            gap: 8px;
+            padding: 10px 10px 20px 10px;
+            background: var(--bg-color);
         }
 
         .k-row {
             display: flex;
             justify-content: center;
-            gap: 4px;
+            gap: 6px;
             width: 100%;
         }
 
@@ -182,153 +189,94 @@
             background-color: var(--key-bg);
             color: var(--key-text);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 0.9rem;
-            height: 52px;
+            font-size: 1.1rem;
+            height: 55px;
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.05s;
+            text-transform: uppercase;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
         }
 
-        .key:active {
-            transform: scale(0.95);
-        }
-
-        .key.wide {
-            flex: 1.5;
-            font-size: 0.75rem;
-        }
+        .key:active { transform: scale(0.92); background-color: #999; }
+        .key.wide { flex: 1.6; font-size: 0.9rem; background-color: #656768; }
 
         .key[data-state="correct"] { background-color: var(--correct-color); }
         .key[data-state="present"] { background-color: var(--present-color); }
-        .key[data-state="absent"] { background-color: #262626; opacity: 0.5; }
+        .key[data-state="absent"] { background-color: #2b2b2c; opacity: 0.6; }
 
+        /* Arayüz Pencereleri (Modal / Toast) */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(3px);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.3s;
         }
 
         .modal-content {
             background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            max-width: 400px;
+            padding: 25px;
+            border-radius: 16px;
             width: 90%;
+            max-width: 380px;
             text-align: center;
             border: 1px solid var(--border-color);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            animation: modalFade 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .modal-title {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .stat-box {
-            background: rgba(255,255,255,0.05);
-            padding: 10px 5px;
-            border-radius: 8px;
-        }
-
-        .stat-val {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #2196f3;
-        }
-
-        .stat-lbl {
-            font-size: 0.7rem;
-            color: #aaa;
-            margin-top: 2px;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-box { background: rgba(255,255,255,0.05); padding: 12px 5px; border-radius: 10px; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: #2196f3; }
+        .stat-lbl { font-size: 0.75rem; color: #bbb; margin-top: 4px; }
 
         .action-btn {
-            background: #538d4e;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
-            transition: background 0.2s;
+            border: none; padding: 14px; border-radius: 10px; font-size: 1.1rem; 
+            font-weight: bold; width: 100%; margin-top: 12px; cursor: pointer; color: white;
         }
-
-        .action-btn:hover { background: #457840; }
+        .btn-blue { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .btn-green { background: linear-gradient(135deg, #538d4e, #3e6b3a); }
+        .btn-gray { background: #3a3a3c; }
 
         .toast {
-            position: fixed;
-            top: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            color: black;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            z-index: 2000;
-            display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            animation: toastPop 0.3s ease;
+            position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+            background: white; color: black; padding: 14px 28px; border-radius: 10px;
+            font-weight: bold; font-size: 1.1rem; display: none; z-index: 2000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s ease-out;
         }
 
-        @keyframes pop {
-            50% { transform: scale(1.1); }
-        }
-        @keyframes flip {
-            0% { transform: rotateX(0deg); }
-            50% { transform: rotateX(90deg); }
-            100% { transform: rotateX(0deg); }
-        }
-        @keyframes shake {
-            10%, 90% { transform: translateX(-2px); }
-            20%, 80% { transform: translateX(4px); }
-            30%, 50%, 70% { transform: translateX(-8px); }
-            40%, 60% { transform: translateX(8px); }
-        }
-        @keyframes modalFade {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes toastPop {
-            from { opacity: 0; transform: translate(-50%, -20px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
-        }
+        /* Animasyonlar */
+        @keyframes pop { 50% { transform: scale(1.15); } }
+        @keyframes flip { 0% { transform: rotateX(0deg); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0deg); } }
+        @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-8px); } 40%, 60% { transform: translateX(8px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideDown { from { top: 5%; opacity: 0; } to { top: 12%; opacity: 1; } }
 
-        @media (max-height: 650px) {
-            #game-board { height: 340px; }
-            .key { height: 42px; }
+        @media (max-height: 750px) {
+            .key { height: 48px; }
+            h1 { font-size: 1.3rem; }
+            #game-board { max-width: 320px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <button class="icon-btn" onclick="showHelp()">❓</button>
         <h1>KELİMEMATİK</h1>
         <div class="header-btns">
-            <button class="icon-btn" onclick="useHint()" title="İpucu Al">💡</button>
-            <button class="icon-btn" onclick="showStats()" title="İstatistikler">📊</button>
+            <button class="lang-btn" onclick="toggleLanguage()" id="lang-toggle">🇹🇷 TR</button>
+            <button class="icon-btn" id="hint-btn" onclick="useHint()">💡</button>
+            <button class="icon-btn" onclick="showStats()">📊</button>
         </div>
     </header>
 
@@ -337,392 +285,176 @@
         <button class="mode-btn" id="btn-unlimited" onclick="switchMode('unlimited')">Sınırsız Mod</button>
     </div>
 
-    <div id="game-board"></div>
-
-    <div id="keyboard">
-        <div class="k-row">
-            <button class="key" onclick="handleInput('E')">E</button>
-            <button class="key" onclick="handleInput('R')">R</button>
-            <button class="key" onclick="handleInput('T')">T</button>
-            <button class="key" onclick="handleInput('Y')">Y</button>
-            <button class="key" onclick="handleInput('U')">U</button>
-            <button class="key" onclick="handleInput('I')">I</button>
-            <button class="key" onclick="handleInput('İ')">İ</button>
-            <button class="key" onclick="handleInput('O')">O</button>
-            <button class="key" onclick="handleInput('Ö')">Ö</button>
-            <button class="key" onclick="handleInput('P')">P</button>
-            <button class="key" onclick="handleInput('Ğ')">Ğ</button>
-            <button class="key" onclick="handleInput('Ü')">Ü</button>
-        </div>
-        <div class="k-row">
-            <button class="key" onclick="handleInput('A')">A</button>
-            <button class="key" onclick="handleInput('S')">S</button>
-            <button class="key" onclick="handleInput('D')">D</button>
-            <button class="key" onclick="handleInput('F')">F</button>
-            <button class="key" onclick="handleInput('G')">G</button>
-            <button class="key" onclick="handleInput('H')">H</button>
-            <button class="key" onclick="handleInput('J')">J</button>
-            <button class="key" onclick="handleInput('K')">K</button>
-            <button class="key" onclick="handleInput('L')">L</button>
-            <button class="key" onclick="handleInput('Ş')">Ş</button>
-            <button class="key" onclick="handleInput('İ')">İ</button>
-        </div>
-        <div class="k-row">
-            <button class="key wide" onclick="handleInput('ENTER')">ENTER</button>
-            <button class="key" onclick="handleInput('Z')">Z</button>
-            <button class="key" onclick="handleInput('C')">C</button>
-            <button class="key" onclick="handleInput('V')">V</button>
-            <button class="key" onclick="handleInput('B')">B</button>
-            <button class="key" onclick="handleInput('N')">N</button>
-            <button class="key" onclick="handleInput('M')">M</button>
-            <button class="key" onclick="handleInput('Ö')">Ö</button>
-            <button class="key" onclick="handleInput('Ç')">Ç</button>
-            <button class="key wide" onclick="handleInput('BACKSPACE')">⌫</button>
-        </div>
+    <div class="board-container">
+        <div id="game-board"></div>
     </div>
 
-    <!-- Stats Modal -->
+    <div id="keyboard"></div>
+
     <div class="modal" id="modal-stats">
         <div class="modal-content">
-            <h2 class="modal-title">İstatistikler</h2>
+            <h2 id="stats-title" style="margin-bottom: 10px;">İstatistikler</h2>
             <div class="stats-grid">
-                <div class="stat-box"><div class="stat-val" id="st-played">0</div><div class="stat-lbl">Oyun</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-win">0</div><div class="stat-lbl">Kazanma %</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-streak">0</div><div class="stat-lbl">Seri</div></div>
-                <div class="stat-box"><div class="stat-val" id="st-max">0</div><div class="stat-lbl">En İyi Seri</div></div>
+                <div class="stat-box"><div class="stat-val" id="st-played">0</div><div class="stat-lbl" id="lbl-played">Oyun</div></div>
+                <div class="stat-box"><div class="stat-val" id="st-win">0</div><div class="stat-lbl" id="lbl-win">% Kazan</div></div>
+                <div class="stat-box"><div class="stat-val" id="st-streak">0</div><div class="stat-lbl" id="lbl-streak">Seri</div></div>
+                <div class="stat-box"><div class="stat-val" id="st-max">0</div><div class="stat-lbl" id="lbl-max">En İyi</div></div>
             </div>
             <div id="end-game-details"></div>
-            <button class="action-btn" id="btn-share" onclick="shareResult()" style="display:none; background:#2196f3;">Skoru Paylaş 📋</button>
-            <button class="action-btn" id="btn-restart" onclick="restartGame()" style="display:none; margin-top:10px;">Yeni Oyun 🔄</button>
-            <button class="action-btn" onclick="closeModals()" style="background:#3a3a3c; margin-top:10px;">Kapat</button>
-        </div>
-    </div>
-
-    <!-- Help Modal -->
-    <div class="modal" id="modal-help">
-        <div class="modal-content" style="text-align: left;">
-            <h2 class="modal-title" style="text-align: center;">Nasıl Oynanır?</h2>
-            <p style="margin-bottom:10px; font-size: 0.9rem;">Gizli 5 harfli kelimeyi 6 denemede tahmin edin.</p>
-            <p style="margin-bottom:10px; font-size: 0.9rem;">Her tahmin geçerli bir 5 harfli kelime olmalıdır. Renkler tahmininizin yakınlığını gösterir:</p>
-            <div style="display:flex; gap:5px; margin:10px 0; align-items:center;">
-                <div class="tile" style="width:30px; height:30px; background:var(--correct-color); border:none; font-size:1rem;">K</div>
-                <span style="font-size:0.85rem;">Harf kelimede var ve doğru yerde.</span>
-            </div>
-            <div style="display:flex; gap:5px; margin:10px 0; align-items:center;">
-                <div class="tile" style="width:30px; height:30px; background:var(--present-color); border:none; font-size:1rem;">A</div>
-                <span style="font-size:0.85rem;">Harf kelimede var ama yanlış yerde.</span>
-            </div>
-            <div style="display:flex; gap:5px; margin:10px 0; align-items:center;">
-                <div class="tile" style="width:30px; height:30px; background:var(--absent-color); border:none; font-size:1rem;">L</div>
-                <span style="font-size:0.85rem;">Harf kelimede yok.</span>
-            </div>
-            <button class="action-btn" onclick="closeModals()">Anladım, Başla!</button>
+            <button class="action-btn btn-blue" id="btn-share" onclick="shareResult()" style="display:none;">Skoru Paylaş 📋</button>
+            <button class="action-btn btn-green" id="btn-restart" onclick="restartGame()" style="display:none;">Yeni Oyun Oyna 🔄</button>
+            <button class="action-btn btn-gray" onclick="closeModals()">Kapat</button>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
 
     <script>
-        // 750+ Türkçe 5 Harfli Kelime Listesi
-        const KELIMELER = [
-            "ABACI", "ABANI", "ABIDE", "ACABA", "ACELE", "ACEMI", "ACILI", "ACIMA", "ACUZE", "ADALE",
-            "ADALI", "ADAMA", "ADANA", "ADETA", "ADRES", "ADSIZ", "AFILI", "AFISE", "AFYON", "AGORA",
-            "AHALI", "AHENK", "AHMET", "AHSAP", "AIDAT", "AJANS", "AKABE", "AKÇIL", "AKIDE", "AKLAM",
-            "AKMAK", "AKRAN", "AKSAP", "AKSAM", "AKSON", "AKTIF", "AKTOR", "ALACA", "ALARM", "ALBUM",
-            "ALÇAK", "ALENI", "ALEVI", "ALGIS", "ALICI", "ALMAK", "ALMAN", "ALMAS", "ALTIN", "ALTIZ",
-            "ALTIK", "AMBAR", "AMBER", "AMELE", "AMORF", "AMPUL", "ANBAG", "ANCAK", "ANDAÇ", "ANDIZ",
-            "ANEKT", "ANGLO", "ANGUT", "ANIDE", "ANIME", "ANIZI", "ANKET", "ANLAMI", "ANMAK", "ANONS",
-            "ANPUL", "ANTEN", "ANTIK", "ANTRE", "ANZAR", "ANZIP", "APORT", "APREI", "APROŞ", "APSEI",
-            "ARABA", "ARABI", "ARAZI", "ARAZA", "ARICI", "ARIZA", "ARIZI", "ARKAÇ", "ARKON", "ARMAĞ",
-            "ARMUT", "AROMA", "ARPACI", "ARSIN", "ARSIV", "ARTIK", "ARTIS", "ARTMA", "ASABI", "ASILI",
-            "ASIMA", "ASKER", "ASKLI", "ASLAN", "ASLIH", "ASLIZ", "ASMAK", "ASORT", "ASTAT", "ASTAR",
-            "ASTIM", "AŞAĞI", "AŞICI", "AŞILI", "AŞIMA", "AŞIRI", "AŞKCI", "AŞMAK", "AŞURE", "ATACI",
-            "ATAMA", "ATASI", "ATEŞI", "ATEŞLI", "ATILI", "ATICI", "ATLAS", "ATLET", "ATMAK", "ATOLU",
-            "AVANCI", "AVANS", "AVARE", "AVIZE", "AVLAÇ", "AVMAK", "AVRAT", "AVRET", "AYDIN", "AYGIT",
-            "AYGIR", "AYICI", "AYIRT", "AYKIR", "AYLAK", "AYLIK", "AYMAK", "AYNAI", "AYRAN", "AYRIÇ",
-            "AYRIK", "AYRIT", "AYSAR", "AYSIZ", "AZAMET", "AZAMI", "AZGIN", "AZILI", "AZMAN", "BABAÇ",
-            "BABAI", "BABAC", "BACAK", "BACAN", "BACAQ", "BADEM", "BADIÇ", "BADIK", "BADIŞ", "BADYA",
-            "BAFRA", "BAGAJ", "BAGEL", "BAĞAN", "BAĞCI", "BAĞIL", "BAĞIM", "BAĞIN", "BAĞIR", "BAĞIŞ",
-            "BAĞLI", "BAAHI", "BAHAR", "BAHÇE", "BAHIR", "BAHIS", "BAHRI", "BAKAC", "BAKAM", "BAKIR",
-            "BAKIŞ", "BAKLA", "BAKMA", "BALAT", "BALCI", "BALET", "BALIK", "BALIĞ", "BALKI", "BALON",
-            "BALTA", "BAMYA", "BANAL", "BANCA", "BANDO", "BANKO", "BANMA", "BANYO", "BARAJ", "BARAK",
-            "BARAN", "BARBA", "BARCI", "BARDO", "BAREM", "BARET", "BARIŞ", "BARIZ", "BARKA", "BAROK",
-            "BARON", "BARUT", "BASAK", "BASAR", "BASIM", "BASIN", "BASIŞ", "BASKI", "BASMA", "BASTA",
-            "BASTI", "BAŞAK", "BAŞAT", "BAŞÇI", "BAŞKA", "BAŞLI", "BATAK", "BATAR", "BATIK", "BATIL",
-            "BATIN", "BATIŞ", "BATIK", "BATON", "BATUR", "BAVUL", "BAYAN", "BAYAT", "BAYIR", "BAYRI",
-            "BAZAL", "BAZEN", "BAZIK", "BAZUN", "BEDEL", "BEDEN", "BEDIK", "BEDIR", "BEDÜK", "BEGÜM",
-            "BEHER", "BEJIK", "BEKÇI", "BEKER", "BEKLE", "BEKRI", "BELCE", "BELDE", "BELEK", "BELEN",
-            "BELGE", "BELGI", "BELIĞ", "BELIK", "BELIT", "BELKI", "BELLE", "BELLI", "BEMOL", "BENCE",
-            "BENCI", "BENDE", "BENEK", "BENGI", "BENIZ", "BENLI", "BERAT", "BERBER", "BERE", "BERRI",
-            "BESIN", "BESLE", "BESTE", "BEŞER", "BEŞIK", "BEŞIZ", "BEŞLI", "BETIK", "BETIM", "BETON",
-            "BEYAN", "BEYAZ", "BEYIN", "BEYIZ", "BEZEN", "BEZIK", "BEZIR", "BEZME", "BIÇAK", "BIÇIK",
-            "BIÇKI", "BICIK", "BIDIK", "BIKIŞ", "BIKMA", "BILEN", "BILGI", "BILIR", "BILIZ", "BILIŞ",
-            "BILME", "BIMOL", "BINAZ", "BINEK", "BINEŞ", "BINIŞ", "BINMA", "BIRAS", "BIREZ", "BIRIK",
-            "BIRTI", "BISIN", "BISON", "BITER", "BITIK", "BITIŞ", "BITKI", "BITLI", "BITME", "BIYIK",
-            "BIZON", "BLOKU", "BLOUS", "BOBIN", "BOBOŞ", "BOÇKA", "BODUR", "BOĞAZ", "BOĞMA", "BOĞUM",
-            "BOĞUK", "BOĞUN", "BOŞNA", "BOŞTA", "BOYAR", "BOYUT", "BOZAC", "BOZCA", "BOZUK", "BOZUM",
-            "BOZUN", "BÖCEK", "BÖLGE", "BÖLÜM", "BÖLÜŞ", "BÖLÜT", "BÖLME", "BÖREK", "BÖYLE", "BÖRLÜ",
-            "BUÇAK", "BUDAK", "BUDUN", "BUĞRA", "BUĞUŞ", "BUĞUZ", "BUHAR", "BUHAR", "BUJAN", "BUKET",
-            "BULAK", "BULUT", "BULUŞ", "BULTU", "BULGU", "BULMA", "BUMBA", "BUNAK", "BUNCA", "BUNLU",
-            "BURAK", "BURCU", "BURGU", "BURUK", "BURUN", "BURUŞ", "BUTIK", "BUTON", "BUYUR", "BUZUL",
-            "BÜCÜR", "BÜCÜK", "BÜDÜN", "BÜGÜL", "BÜKÜM", "BÜKÜN", "BÜKÜŞ", "BÜKME", "BÜLUĞ", "BÜNYE",
-            "BÜRÜK", "BÜRÜN", "BÜSÜN", "BÜTNE", "BÜTÜN", "BÜYÜK", "CABAN", "CABIR", "CACIK", "CADDE",
-            "CADI", "CAGAN", "CAHIL", "CAIZI", "CAKSA", "CAMCI", "CAMIA", "CAMIZ", "CAMLI", "CANAN",
-            "CANIM", "CANLI", "CANIŞ", "CAPON", "CARCI", "CARLI", "CASUS", "CAVAÇ", "CAYIŞ", "CAYMA",
-            "CAZCI", "CAZIB", "CAZIP", "CEBAL", "CEBEL", "CEBER", "CEBIN", "CEBIR", "CEBRA", "CEBRE",
-            "CEDEL", "CEDID", "CEDRE", "CEFAK", "CEHAL", "CEHEL", "CEHEN", "CEKET", "CELAL", "CELBE",
-            "CELEP", "CELIL", "CELSE", "CEMAL", "CEMAN", "CEMIL", "CEMRE", "CENAH", "CENAP", "CESUR",
-            "CESET", "CEVIZ", "CEVAB", "CEVAP", "CEVHER", "CEVRI", "CEYLAN", "CIBIL", "CICIK", "CICIM",
-            "CIGER", "CILIZ", "CILVE", "CIMBI", "CINIS", "CINSL", "CIRIT", "CISIM", "CUMBA", "CUMHA",
-            "CUNDA", "CUPTA", "CURAÇ", "CÜBBE", "CÜCÜK", "CÜLUS", "CÜMLE", "CÜNÜN", "CÜPPE", "CÜRUM",
-            "CÜSSE", "ÇABUK", "ÇADIR", "ÇAĞRI", "ÇAKIL", "ÇAKIR", "ÇAKIS", "ÇAKMA", "ÇALAK", "ÇALAR",
-            "ÇALGI", "ÇALIŞ", "ÇALMA", "ÇAMUR", "ÇANCI", "ÇANAK", "ÇANTA", "ÇAPAC", "ÇAPAK", "ÇAPAR",
-            "ÇAPLA", "ÇAPRA", "ÇAPUL", "ÇARIK", "ÇARŞI", "ÇARTU", "ÇASIT", "ÇATAL", "ÇATIK", "ÇATIŞ",
-            "ÇATKI", "ÇATMA", "ÇAVUŞ", "ÇAYCI", "ÇAYIR", "ÇAYLI", "ÇEBIC", "ÇEÇEN", "ÇEDIK", "ÇEKEÇ",
-            "ÇEKEL", "ÇEKEM", "ÇEKER", "ÇEKIK", "ÇEKIÇ", "ÇEKIŞ", "ÇEKME", "ÇELEB", "ÇELIK", "ÇELME",
-            "ÇEMEN", "ÇENET", "ÇENEK", "ÇENGE", "ÇENGI", "ÇEPEL", "ÇEPER", "ÇEPIÇ", "ÇEPNI", "ÇERÇI",
-            "ÇEREZ", "ÇERGE", "ÇEŞIT", "ÇEŞME", "ÇEŞNI", "ÇETIN", "ÇEVIK", "ÇEVRE", "ÇEYRE", "ÇIÇEK",
-            "ÇIFTE", "ÇIGLI", "ÇIĞIR", "ÇILET", "ÇIMEN", "ÇINI", "ÇINO", "ÇIPA", "ÇIRAK", "ÇIRPI",
-            "ÇIZGI", "ÇIZIK", "ÇIZME", "ÇOBAN", "ÇOCUK", "ÇOĞUL", "ÇOĞUN", "ÇOKLU", "ÇOMAK", "ÇORAP",
-            "ÇORBA", "ÇÖREK", "ÇÖZÜM", "ÇÖZÜŞ", "ÇUBUK", "ÇUVAL", "ÇÜNKÜ", "DADAŞ", "DAĞCI", "DAĞLI",
-            "DAHIL", "DAIMA", "DAIRE", "DAKIK", "DALGA", "DALIZ", "DALLI", "DAMAK", "DAMAR", "DAMLA",
-            "DAMLI", "DANIŞ", "DANSA", "DARAC", "DARBA", "DARBE", "DARCA", "DAŞAN", "DAVET", "DAVUL",
-            "DEFIN", "DEFNE", "DEĞER", "DEĞIL", "DEĞIN", "DEĞIŞ", "DEĞME", "DEKAN", "DEKOR", "DELIK",
-            "DELIL", "DELME", "DEMCI", "DEMEK", "DEMET", "DEMIN", "DEMIR", "DENCI", "DENEY", "DENGE",
-            "DENIZ", "DENLI", "DENME", "DEPO", "DERGI", "DERIN", "DERME", "DESEN", "DESK", "DESTE",
-            "DETAY", "DEVAM", "DEVRAN", "DEVRE", "DEYIM", "DEYIŞ", "DIKEC", "DIKIK", "DIKIM", "DIKIŞ",
-            "DIKIT", "DIKIZ", "DIKME", "DILCI", "DILEK", "DILIM", "DILIŞ", "DILME", "DINER", "DINGI",
-            "DINLI", "DINME", "DIREK", "DIREN", "DIREZ", "DIRIL", "DIRIM", "DIPLI", "DISÇI", "DISIL",
-            "DISKI", "DISLE", "DITME", "DIVAN", "DIVAR", "DIYAR", "DIZEK", "DIZEL", "DIZGI", "DIZIK",
-            "DIZIM", "DIZIŞ", "DIZME", "DOGMA", "DOĞAL", "DOĞAN", "DOĞRU", "DOĞUŞ", "DOKUZ", "DOLAP",
-            "DOLAR", "DOLGU", "DOLMA", "DOLUS", "DOMUZ", "DONAM", "DONAT", "DONLU", "DONUT", "DORUK",
-            "DOSTU", "DOSYA", "DOYUM", "DOYUS", "DÖDÜK", "DÖLEK", "DÖNEM", "DÖNER", "DÖNÜS", "DÖNÜT",
-            "DÖŞEK", "DÖŞEM", "DÖVÜS", "DRAMA", "DUACI", "DUBLE", "DUDAK", "DUĞUN", "DUHTE", "DUKALI",
-            "DUMAN", "DURAK", "DURAÇ", "DURUM", "DURUŞ", "DUVAR", "DUYGU", "DUYUM", "DÜĞÜM", "DÜĞÜN",
-            "DÜMEN", "DÜNYA", "DÜRÜST", "DÜRÜM", "DÜŞÜK", "DÜŞÜN", "DÜŞÜŞ", "DÜZEC", "DÜZEN", "DÜZEY",
-            "DÜZGÜ", "EBRUL", "ECDAT", "ECEL", "ECNEBI", "EDALI", "EDEBI", "EDINÇ", "EDIRN", "EFECE",
-            "EFELE", "EFSAN", "EGEMN", "EGITM", "EGRI", "EHRAM", "EHLIL", "EJDER", "EKBAT", "EKLAM",
-            "EKLER", "EKLIL", "EKLIP", "EKMEK", "EKRAN", "EKSEN", "EKSER", "EKSIK", "EKSIZ", "EKŞIL",
-            "ELBET", "ELCIK", "ELÇI", "ELÇIL", "ELDEN", "ELECI", "ELEK", "ELEM", "ELGIN", "ELHAM",
-            "ELIAÇ", "ELIF", "ELIPS", "ELLI", "ELMA", "ELMAS", "ELMEZ", "EMARE", "EMEK", "EMIN",
-            "EMIR", "EMLIK", "EMMA", "EMRCI", "EMSAL", "EMSLE", "ENFES", "ENENG", "ENGEL", "ENGIN",
-            "ENSIZ", "ENSTI", "ENTAR", "EPISD", "ERDEK", "ERDEM", "ERDEN", "EREK", "ERGIN", "ERIK",
-            "ERIL", "ERIM", "ERINÇ", "ERIS", "ERKEN", "ERKIN", "ERKLI", "ERMEK", "ERMIN", "EROS",
-            "EROIN", "ERRAK", "ERREZ", "ERSEK", "ERSIN", "ERTEM", "ERTES", "ERZIN", "ESANS", "ESASI",
-            "ESBAK", "ESBAB", "ESCAN", "ESES", "ESIA", "ESKICI", "ESKIL", "ESKIZ", "ESKORT", "ESMEK",
-            "ESMER", "ESNAF", "ESNEK", "ESPER", "ESPRI", "ESRAR", "ESRAT", "ESRIM", "ESTET", "ESUBA",
-            "EŞARP", "EŞHAS", "EŞIT", "EŞKIL", "EŞLIK", "EŞMEK", "EŞSIZ", "ETAP", "ETÇI", "ETEN",
-            "ETHER", "ETHIC", "ETIK", "ETIKET", "ETKEN", "ETKIN", "ETLI", "ETMEK", "ETNIN", "ETNIK",
-            "ETOL", "ETRAP", "ETSIZ", "ETÜD", "ETÜT", "EVCE", "EVCIL", "EVDE", "EVEL", "EVGIL",
-            "EVHAM", "EVIÇ", "EVIN", "EVLA", "EVLAD", "EVLI", "EVRCI", "EVRE", "EVRIM", "EVSEL",
-            "EVSI", "EVSIZ", "EYLÜL", "EYTAM", "EYVAH", "EYVAN", "EZAN", "EZBER", "EZEC", "EZGI",
-            "EZGIN", "EZICI", "EZIK", "EZIL", "EZIME", "EZMEK", "FAKIR", "FALCI", "FARAZ", "FARK",
-            "FARSI", "FASIL", "FASON", "FAVIK", "FAZIL", "FAZLA", "FECIR", "FEDAI", "FELEK", "FENER",
-            "FERDA", "FERDI", "FERAH", "FESAT", "FETIH", "FETVA", "FINDIK", "FIRÇA", "FIRIN", "FISTIK",
-            "FIKIR", "FIKRA", "FILIZ", "FILM", "FINAL", "FIRMA", "FIYAT", "FUSUN", "FÜZUN", "GALIP",
-            "GAYRE", "GAZEL", "GAZET", "GEÇE", "GEÇIT", "GELIN", "GELIR", "GELME", "GEMICI", "GENEL",
-            "GENIS", "GEREK", "GERÇE", "GEYIK", "GIDER", "GIRIS", "GIYIM", "GIZLI", "GÖCEK", "GÖÇME",
-            "GÖĞÜS", "GÖLGE", "GÖNÜL", "GÖREV", "GÖRME", "GÖRÜŞ", "GÖVDE", "GÖZDE", "GÜNEŞ", "GÜNLÜ",
-            "GÜVEN", "GÜZEL", "HABER", "HACIM", "HAKIM", "HALAY", "HALKA", "HAMLE", "HAMUR", "HANGI",
-            "HANIM", "HARAP", "HARFI", "HARKA", "HASAR", "HASIR", "HASTA", "HATIR", "HATTA", "HAVAT",
-            "HAVUZ", "HAYAT", "HAYAL", "HAYIR", "HAYLI", "HAZIR", "HAZIN", "HEDEF", "HEKIM", "HELAL",
-            "HELE", "HEMŞE", "HENUZ", "HESAP", "HEVES", "HEYET", "HIRSA", "HIZLI", "HILAL", "HISAR",
-            "HITAP", "HIZMET", "HUKUK", "HUZUR", "HÜCUM", "HÜKÜM", "HÜRRI", "HÜZÜN", "IRMAK", "ISINM",
-            "ISPAT", "ISRAR", "ISTEK", "ISYAN", "IÇERIK", "IĞNE", "IKLIM", "IKRAM", "ILAHI", "ILAÇ",
-            "ILAVE", "ILGILI", "ILIŞK", "IMKAN", "IMZA", "INANC", "INANÇ", "INSAF", "INSAN", "INPEK",
-            "IPTIK", "IRADE", "IRTIB", "ISIM", "ISLAM", "ISLEM", "ISPAT", "ISRAF", "ISTEN", "IŞIKS",
-            "IŞLEM", "IŞLET", "IŞSIZ", "IŞTIR", "ITAAT", "ITHAL", "ITIR", "IZIN", "IZMIR", "IZOL",
-            "JAPON", "JOKER", "JURI", "KABAL", "KABUK", "KABUL", "KAÇAK", "KAÇIŞ", "KADAR", "KADER",
-            "KADIN", "KADRO", "KAĞIT", "KAHVE", "KAIDE", "KALAN", "KALEM", "KALIP", "KALIN", "KALLE",
-            "KALMA", "KANAL", "KANIT", "KANUN", "KAPAK", "KAPLAN", "KAPS", "KARA", "KARAR", "KARD",
-            "KARIN", "KARIŞ", "KARŞI", "KASIT", "KASIR", "KASSA", "KAŞIK", "KATIK", "KATIP", "KATLI",
-            "KAVAK", "KAVAM", "KAVGA", "KAVUM", "KAYA", "KAYIK", "KAYIP", "KAYIT", "KAYRA", "KAZAN",
-            "KAZIK", "KELEB", "KEMAL", "KEMAN", "KEMIK", "KENAR", "KENDI", "KEPIN", "KESIN", "KESIR",
-            "KESIŞ", "KESME", "KEYIF", "KILÇI", "KILIÇ", "KILIF", "KILIS", "KIMSE", "KIMYA", "KIRIK",
-            "KIRIŞ", "KIRLI", "KIPIR", "KIRMI", "KIRTI", "KISIR", "KISIR", "KISIM", "KISKA", "KISMET",
-            "KIŞLA", "KITAP", "KITLE", "KIVAM", "KIYAS", "KIYMA", "KIZIL", "KLAS", "KLIK", "KLIN",
-            "KOBRA", "KOLAY", "KOLEJ", "KOLUM", "KOMIK", "KOMŞU", "KONAK", "KONUÇ", "KONUM", "KONUR",
-            "KONUS", "KONUT", "KORMA", "KORKU", "KORSA", "KORU", "KOTAN", "KOVA", "KOYUN", "KOZAK",
-            "KÖMÜR", "KÖPEK", "KÖRÜK", "KÖŞE", "KÖYLÜ", "KURAL", "KURAM", "KURAN", "KURMA", "KURS",
-            "KURT", "KURU", "KURUM", "KUSUR", "KUŞAK", "KUTLU", "KUTU", "KUVVE", "KUYU", "KUZEY",
-            "KÜÇÜK", "KÜLTÜ", "KÜMES", "KÜTÜK", "LAÇIN", "LIDER", "LIMAN", "LISTE", "LIZOL", "LOKMA",
-            "LOKUM", "MADDE", "MADDY", "MADEN", "MAĞA", "MAHAL", "MAHIR", "MAHKE", "MAHSU", "MAIDA",
-            "MAKALE", "MAKET", "MAKUL", "MAKAM", "MALCI", "MALIK", "MALUM", "MANAV", "MANDA", "MANTIK",
-            "MARAL", "MARKA", "MARTI", "MASAL", "MASAF", "MASA", "MASKE", "MASUM", "MASUR", "MATEM",
-            "MAVI", "MAYA", "MAYIS", "MAYNS", "MAZUR", "MEBEC", "MECLIS", "MECBUR", "MEDEN", "MEDRE",
-            "MELEK", "MEMUR", "MERAK", "MERCI", "MERES", "MERIÇ", "MERMI", "MESAI", "MESAJ", "MESEL",
-            "MESLE", "MESUT", "METIN", "METOT", "MEVCI", "MEVKI", "MEVZU", "MEKTE", "MEYVE", "MEZAR",
-            "MEZUN", "MICIR", "MIDYE", "MIGTA", "Milli", "MIMAR", "MIMIK", "MINI", "MINAC", "MIRAS",
-            "MISIR", "MİLAN", "MİLLİ", "MİSAF", "MİSAL", "MİSİS", "MİSKİ", "MİTOS", "MODEL", "MODER",
-            "MODA", "MOTOR", "MÖBLE", "MUHIT", "MUDUR", "MUĞLA", "MUHAL", "MUHIP", "MUHIT", "MUJDE",
-            "MUKIM", "MUTLU", "MUTLA", "MUYLA", "MÜDÜR", "MÜFTÜ", "MÜHIM", "MÜLKI", "MÜMIN", "MÜZE",
-            "NABIZ", "NAKIL", "NAKIP", "NAKLI", "NAKŞI", "NALAN", "NAMAZ", "NAMUS", "NASIL", "NASIP",
-            "NAZAR", "NAZIR", "NAZIK", "NAZIM", "NAZLI", "NEDEN", "NEFES", "NEFIS", "NEFIR", "NEHIR",
-            "NEKAH", "NESIL", "NESNE", "NESRIn", "NEŞE", "NEŞET", "NETICE", "NEVRA", "NEZIH", "NICEL",
-            "NIFAS", "NIĞDE", "NIHAI", "NIKAH", "NIKEL", "NISAN", "NISBI", "NISPE", "NIŞAN", "NIYET",
-            "NIZAM", "NOKTA", "NOTAR", "NUTUK", "NÖBET", "NÜFUS", "NÜFUZ", "NÜKTE", "OCAK", "ODASI",
-            "ODUN", "OĞLAN", "OĞUL", "OĞUZ", "OKEY", "OKSIT", "OKTAY", "OKUMA", "OKUL", "OKUYU",
-            "OLASI", "OLAY", "OLAYI", "OLCAY", "OLGU", "OLMAK", "OLAN", "OLUM", "OLUMU", "OMUZ",
-            "ONAR", "ONAY", "ONLAR", "ORAN", "ORANG", "ORDA", "ORDEK", "ORMAN", "ORTA", "ORTAM", "ORTAK",
-            "ORUÇ", "OTEL", "OTLU", "OTUZ", "OYUN", "OZON", "ÖÇLÜ", "ÖDENM", "ÖDER", "ÖDEV",
-            "ÖDÜL", "ÖĞLE", "ÖĞRE", "ÖĞRETI", "ÖKÜZ", "ÖLÇÜ", "ÖLÇÜM", "ÖLÇÜT", "ÖLÜM", "ÖMÜR",
-            "ÖNCE", "ÖNCÜ", "ÖNCÜL", "ÖNDER", "ÖNEK", "ÖNEM", "ÖNERI", "ÖNLEM", "ÖNLÜK", "ÖRDEK",
-            "ÖNEK", "ÖRNEK", "ÖRTÜ", "ÖRTÜŞ", "ÖVÜN", "ÖVGÜ", "ÖZDEN", "ÖZEL", "ÖZEM", "ÖZEN",
-            "ÖZERK", "ÖZET", "ÖZGÜ", "ÖZGÜR", "ÖZLE", "ÖZLEM", "ÖZNES", "PAÇAL", "PAHAL", "PAKET",
-            "PALTO", "PANEL", "PANO", "PANIK", "PAPAZ", "PARÇ", "PARÇA", "PARK", "PARKE", "PARLA",
-            "PARTI", "PASAP", "PASLI", "PASTA", "PATI", "PATI", "PAYDA", "PAYLA", "PAZAR", "PEDAL",
-            "PEKIN", "PEMBE", "PERDE", "PERON", "PERI", "PESIN", "PETEK", "PIHTI", "PILES", "PILOT",
-            "PINAR", "PIPI", "PIRTI", "PISLI", "PIYAN", "PIYAS", "PIYON", "PIZZA", "PLAK", "PLAKA",
-            "PLAN", "PLAZA", "POLET", "POLIS", "POLA", "POMPA", "PORTE", "POSA", "POSTA", "POTAS",
-            "POYRA", "PROJE", "PROT", "PROVE", "PUAN", "PUDRA", "PUSU", "PUSUL", "PÜRÜZ", "RABB",
-            "RADAR", "RADYO", "RAHAT", "RAKIP", "RAKEM", "RAKAM", "RAMPA", "RAPOR", "RASAT", "RAYIÇ",
-            "REÇET", "RESIM", "RESMI", "REŞIT", "REVAÇ", "REVER", "REVIZ", "REYLE", "REZIL", "RIZA",
-            "RIMEL", "RITIM", "RIVAL", "ROBOT", "ROKET", "ROMAN", "ROTA", "ROTOR", "ROZET", "RÖLE",
-            "RUHSA", "RUHLI", "RUMCA", "RUMUZ", "RUSÇA", "RÜZGA", "RÜZGAR", "SABAH", "SABIR", "SABIT",
-            "SABUN", "SAÇAK", "SADA", "SADE", "SADIK", "SAGLI", "SAĞLIK", "SAHAT", "SAHIL", "SAHIP",
-            "SAHNE", "SAHRA", "SAKAF", "SAKAL", "SAKAY", "SAKIN", "SAKLI", "SALON", "SAMAN", "SAMAR",
-            "SAMET", "SANAL", "SANAT", "SANCI", "SANIK", "SANNI", "SANRI", "SAPAN", "SARI", "SARIK",
-            "SARMA", "SASI", "SATIR", "SATIŞ", "SATMA", "SAVAN", "SAVCI", "SAVUŞ", "SAYAÇ", "SAYGI",
-            "SAYI", "SAYIN", "SAYIŞ", "SAYFA", "SAZAN", "SEBEP", "SEBIL", "SEÇIM", "SEÇME", "SEDA",
-            "SEDEF", "SEDIR", "SEFER", "SEGAH", "SEKIZ", "SEKSI", "SELAM", "SELEK", "SELVIn", "SEMA",
-            "SEMAI", "SEMEN", "SEMIN", "SEMIZ", "SENET", "SEPET", "SEPRI", "SERGI", "SERIN", "SERI",
-            "SERME", "SERUM", "SERVET", "SESLI", "SEVDA", "SEVGI", "SEVIÇ", "SEVIY", "SEVMA", "SEYIR",
-            "SEZON", "SEZGI", "SICAK", "SIÇAN", "SIFIR", "SIĞIR", "SIHAT", "SIHIR", "SIKÇA", "SIKIL",
-            "SIKIM", "SILAH", "SILME", "SIMUR", "SINEK", "SINIF", "SINIR", "SINKO", "SINMA", "SIPAR",
-            "SIRAC", "SIRAY", "SIRCA", "SIRD", "SIRMA", "SIROZ", "SISLI", "SISTE", "SITMA", "SIVAS",
-            "SIVR", "SIVRI", "SIYAH", "SIYAS", "SIZMA", "SKOR", "SLAJT", "SLOG", "SMOKI", "SOBAC",
-            "SOĞAN", "SOĞUK", "SOKAK", "SOKET", "SOLUK", "SOLUS", "SOMUN", "SONRA", "SONUC", "SONUÇ",
-            "SORGU", "SORUM", "SORUN", "SORUS", "SOYLU", "SOYUM", "SÖGÜT", "SÖVE", "SÖYLE", "SÖZCU",
-            "SÖZLU", "SPOR", "SPORU", "STAD", "STAJ", "STENT", "STRES", "SUÇLU", "SULAK", "SULTA",
-            "SUNUM", "SUNUS", "SURA", "SURAT", "SURER", "SURET", "SUYU", "SÜPER", "SÜRE", "SÜREC",
-            "SÜREÇ", "SÜREK", "SÜRÜC", "SÜRÜM", "SÜSÜ", "SÜTÇÜ", "ŞABON", "ŞAFAT", "ŞAFAK", "ŞAHS",
-            "ŞAHSI", "ŞAIBE", "ŞAIR", "ŞAKA", "ŞAKAK", "ŞAMAR", "ŞAMPU", "ŞANLI", "ŞANSA", "ŞANSI",
-            "ŞAPKA", "ŞARAP", "ŞARKI", "ŞEHR", "ŞEHIR", "ŞEHIT", "ŞEKER", "ŞEKIL", "ŞEKL", "ŞEMS",
-            "ŞEMSE", "ŞERIF", "ŞERIT", "ŞEYT", "ŞEYTA", "ŞIKLI", "ŞIIR", "ŞIRET", "ŞIRNA", "ŞIRIN",
-            "ŞIŞMA", "ŞOFÖR", "ŞÖLEN", "ŞUARA", "ŞUBAT", "ŞULE", "ŞÜBHE", "ŞÜPHE", "ŞÜKÜR", "TABAC",
-            "TABAK", "TABAN", "TABEL", "TABII", "TABIP", "TABLO", "TABUR", "TABUT", "TABYA", "TACIR",
-            "TACIZ", "TADIM", "TAHRA", "TAHTA", "TAKIB", "TAKIM", "TAKIP", "TAKKE", "TAKMA", "TAKSA",
-            "TAKSI", "TALEP", "TALIM", "TALIP", "TALON", "TAMAM", "TAMIR", "TANIT", "TANRI", "TANSI",
-            "TANYU", "TAPTI", "TARAF", "TARAÇ", "TARIF", "TARIH", "TARIM", "TARLA", "TASAR", "TASDI",
-            "TASMA", "TASVE", "TAŞÇI", "TAŞIT", "TAŞLI", "TAŞMA", "TATLI", "TAVIR", "TAVLA", "TAVUK",
-            "TAVUS", "TAYIN", "TAYFI", "TAZIM", "TAZI", "TEATRO", "TEBEŞ", "TECRI", "TEDAB", "TEDAW",
-            "TEDBI", "TEFSI", "TEHDIT", "TEKCI", "TEKER", "TEKIL", "TEKIN", "TEKLI", "TEKNE", "TEKST",
-            "TELAŞ", "TELEF", "TELIF", "TELIZ", "TELSIn", "TEMAS", "TEMEL", "TEMIZ", "TEMPO", "TENCI",
-            "TENIS", "TEORI", "TEPRI", "TERBI", "TERCI", "TERIM", "TERMI", "TERSI", "TESI", "TESIR",
-            "TESIS", "TESTI", "TESBI", "TEŞHI", "TEŞKI", "TETIK", "TEVIL", "TEVRA", "TEZAT", "TEZCE",
-            "TIFIL", "TIKAC", "TILKI", "TIMUR", "TINAZ", "TIPI", "TIRAS", "TIRAŞ", "TITIZ", "TOHUM",
-            "TOKAT", "TOBAC", "TOLGA", "TOLUM", "TOMAR", "TONAJ", "TOPAL", "TOPLA", "TOPLU", "TOPUK",
-            "TORBA", "TORUN", "TOSUN", "TOZLU", "TÖREN", "TÖREV", "TRAFO", "TRAK", "TRANS", "TRAP",
-            "TREN", "TRIO", "TUĞLA", "TULUM", "TUMAR", "TULUM", "TUNÇ", "TUNEL", "TURAN", "TURÇ",
-            "TURFA", "TURIS", "TURNA", "TURŞU", "TUTAK", "TUTAM", "TUTAR", "TUTKU", "TUTUM", "TUTUS",
-            "TUZCU", "TUZLU", "TÜFEK", "TÜKET", "TÜMÖR", "TÜNEL", "TÜREV", "TÜRKÇ", "TÜRKÜ", "TÜTÜN",
-            "UCUZ", "UÇAK", "UÇAN", "UÇAR", "UÇSUZ", "UÇUM", "UÇUR", "UĞRAŞ", "UĞUR", "UĞRA",
-            "UKALA", "ULAŞI", "ULUCA", "ULUS", "UMUM", "UMUR", "UMUT", "UNSUR", "UNVAN", "URBAN",
-            "URGAN", "USLU", "USTA", "UŞAK", "UTANÇ", "UTANM", "UYGAR", "UYGUN", "UYGUR", "UYKU",
-            "UYLUK", "UYMA", "UYSAL", "UYUM", "UYUMA", "UYGUL", "UZAK", "UZAN", "UZAY", "UZMAN",
-            "ÜCRET", "ÜÇGEN", "ÜÇLÜ", "ÜÇER", "ÜLES", "ÜLKE", "ÜLKÜ", "ÜMİT", "ÜNİTE", "ÜNİVE",
-            "ÜNLÜ", "ÜNVAN", "ÜRÜN", "ÜSLUP", "ÜSTAT", "ÜSTÜN", "ÜVEY", "ÜZÜM", "VAGON", "VAHŞI",
-            "VAKIT", "VAKUR", "VALI", "VALIZ", "VALVE", "VANCA", "VARIS", "VARIŞ", "VARLIK", "VARMA",
-            "VAROŞ", "VASAT", "VASIF", "VASIL", "VATAN", "VATAN", "VATAN", "VAYE", "VAZFE", "VAZI",
-            "VEDA", "VEFA", "VEKIL", "VELET", "VERGI", "VERIM", "VERI", "VERME", "VERYS", "VESIK",
-            "VEZIR", "VEZN", "VICDA", "VICAN", "VIDO", "VIDEO", "VILLA", "VIRUS", "VISKI", "VIŞNE",
-            "VITES", "VIZE", "VOLAN", "VOLKAN", "VOLT", "VURGU", "VURUŞ", "VURMA", "VÜCUT", "YABAN",
-            "YAĞCI", "YAĞIŞ", "YAĞLI", "YAĞMA", "YAHUT", "YAKIN", "YAKIT", "YAKMA", "YALAN", "YALI",
-            "YALNIZ", "YAMAC", "YAMAN", "YANAK", "YANAL", "YANGI", "YANIK", "YANIŞ", "YANLI", "YANSI",
-            "YAPAR", "YAPI", "YAPIM", "YAPIŞ", "YAPIT", "YAPMA", "YARAN", "YARAR", "YARAŞ", "YARGI",
-            "YARI", "YARIM", "YARIŞ", "YARMA", "YASAK", "YASAL", "YASI", "YASTI", "YAŞAM", "YAŞLI",
-            "YATAG", "YATAK", "YATAY", "YATIM", "YATIR", "YATIŞ", "YATMA", "YAVAŞ", "YAVER", "YAVRU",
-            "YAYIN", "YAYLA", "YAYMA", "YAZAR", "YAZGI", "YAZI", "YAZIL", "YAZIM", "YAZIN", "YAZIŞ",
-            "YAZMA", "YEDEK", "YEĞEN", "YELKEN", "YEMEK", "YEMIN", "YENI", "YENIK", "YEREL", "YERLI",
-            "YEŞIL", "YETGI", "YETIM", "YETKI", "YETME", "YEVM", "YIGIT", "YIKIK", "YIKIŞ", "YIKMA",
-            "YILAN", "YILD", "YILIZ", "YILMA", "YINE", "YIRMI", "YITIK", "YITIŞ", "YITME", "YOĞUN",
-            "YOKSA", "YOKUS", "YOKUŞ", "YOLCU", "YOLLU", "YOLMA", "YONCA", "YONTU", "YORUM", "YORUŞ",
-            "YOSUN", "YÖNEM", "YÖNET", "YÖNEY", "YÖNLÜ", "YÖNTM", "YÖNÜ", "YUMUŞ", "YUNAN", "YURT",
-            "YUTMA", "YUVAM", "YUVAR", "YÜCE", "YÜKSE", "YÜKÜM", "YÜREK", "YÜZDE", "YÜZEY", "YÜZME",
-            "ZABIT", "ZAFER", "ZAMAN", "ZANLI", "ZARAR", "ZARF", "ZATEN", "ZAYIF", "ZEBRA", "ZEHIR",
-            "ZEKAT", "ZEKER", "ZEKI", "ZEMIN", "ZENGIN", "ZERE", "ZERRE", "ZEVK", "ZINCIR", "ZINAR",
-            "ZIRA", "ZIRVE", "ZILAC", "ZIHN", "ZIHNI", "ZIHNEN", "ZINDA", "ZIPIR", "ZIRH", "ZIYAD",
-            "ZIYAN", "ZORBA", "ZORLU", "ZULÜM", "ZÜPPE", "ZÜRIC"
+        // Sözlükler
+        const WORDS_TR = [
+            "HAFTA", "ACELE", "ACEMİ", "ADRES", "AHENK", "AKŞAM", "AKTİF", "ALARM", "BANYO", "BARIŞ", 
+            "BASİT", "BEYİN", "BİLET", "BİLGİ", "BİLİM", "BÖCEK", "BULUT", "CEVAP", "CİDDİ", "CİHAZ", 
+            "ÇABUK", "ÇANTA", "ÇİÇEK", "ÇOCUK", "ÇÖZÜM", "DEĞER", "DENEY", "DENİZ",
+            "DÜNYA", "EKRAN", "ELMAS", "ERKEK", "FİKİR", "FİYAT", "FİZİK", "GÜNEŞ", "GÜVEN", "GÜZEL", 
+            "HABER", "HAYAT", "HEDEF", "HESAP", "İNSAN", "İŞLEM", "KADIN", "KAĞIT", "KALEM", "KANUN", 
+            "KARAR", "KİTAP", "KURAL", "KÜÇÜK", "LİDER", "MADDE", "MAKUL", "MERAK", "MÜZİK", "NOKTA", 
+            "ORMAN", "ÖRNEK", "PAKET", "PROJE", "RAKAM", "SABAH", "SANAT", 
+            "SEBEP", "SEÇİM", "SİLAH", "SONUÇ", "SORUN", "ŞEHİR", "TARİH", 
+            "TEMEL", "VAKİT", "VATAN", "YALAN", "YAPAY", "YAZAR", "ZAMAN"
         ];
 
-        // State Variables
-        let currentMode = 'daily';
+        const WORDS_AZ = [
+            "SALAM", "KİTAB", "QƏLƏM", "ŞƏHƏR", "HƏYAT", "İNSAN", "ZAMAN", "DÜNYA", "GÜNƏŞ", "YAĞIŞ",
+            "QADIN", "BİLGİ", "SƏBƏB", "HƏFTƏ", "DƏQİQ", "QƏRAR", "VƏTƏN", "ÇİÇƏK", "KÖNÜL", "GÖZƏL",
+            "TƏMİZ", "YAXŞI", "GÜCLÜ", "BÖYÜK", "KİÇİK", "BƏYAZ", "YAŞIL", "TƏLƏB", "DƏNİZ", "GİRİŞ",
+            "BAXIŞ", "GÖRÜŞ", "XƏBƏR", "DƏYƏR", "SƏNƏT", "NƏĞMƏ", "SƏHƏR", "AXŞAM", "XƏYAL", "MƏKAN",
+            "HƏKİM", "XƏSTƏ", "ÇÖRƏK", "MEYVƏ", "ŞƏKİL", "HÜQUQ", "TARİX", "QANUN", "İFADƏ", "MARAQ", 
+            "ZƏFƏR", "ÇIXIŞ", "GÖRÜŞ", "ATMAQ", "RAYON"
+        ];
+
+        // Tam Standart Klavye Dizilimleri (Çift harf kesinlikle yok)
+        const KEYBOARDS = {
+            TR: [
+                ['E','R','T','Y','U','I','O','P','Ğ','Ü'],
+                ['A','S','D','F','G','H','J','K','L','Ş','İ'],
+                ['ENTER','Z','C','V','B','N','M','Ö','Ç','DEL']
+            ],
+            AZ: [
+                ['Q','Ü','E','R','T','Y','U','İ','O','P','Ö','Ğ'],
+                ['A','S','D','F','G','H','J','K','L','I','Ə'],
+                ['ENTER','Z','X','C','V','B','N','M','Ç','Ş','DEL']
+            ]
+        };
+
+        // Sistem Değişkenleri
+        let currentLang = localStorage.getItem('km_lang') || 'TR';
+        let currentMode = localStorage.getItem('km_mode') || 'daily';
         let targetWord = "";
         let currentRow = 0;
         let currentTile = 0;
         let isGameOver = false;
+        let hintUsed = false;
         let boardState = Array(6).fill("");
         let stats = { played: 0, wins: 0, streak: 0, maxStreak: 0 };
-        let audioCtx = null;
+        
+        // Ghost Click (Çift basma) Engelleme Kilidi
+        let lastInputTime = 0; 
+        const DEBOUNCE_MS = 150; 
 
-        // Init App
         window.onload = () => {
             loadStats();
-            initBoard();
-            switchMode('daily');
-            document.addEventListener('keydown', handlePhysicalKeyboard);
+            updateLangUI();
+            
+            // Eğer kaydedilmiş bir yarım oyun varsa yükle, yoksa yeni başlat
+            if (!loadGameState()) {
+                initBoard();
+                setupGameLogic(currentMode);
+            }
+            
+            renderKeyboard();
+            applySavedBoardState(); // Klavye ve tahtayı eski oyun durumuna getirir
         };
 
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+        function toggleLanguage() {
+            currentLang = currentLang === 'TR' ? 'AZ' : 'TR';
+            localStorage.setItem('km_lang', currentLang);
+            updateLangUI();
+            renderKeyboard();
+            switchMode(currentMode, true); // Dil değişince tahtayı zorla sıfırla
+            showToast(currentLang === 'TR' ? "Dil: Türkçe" : "Dil: Azərbaycan dili");
         }
 
-        function playSound(type) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            const now = audioCtx.currentTime;
-            if (type === 'key') {
-                osc.frequency.setValueAtTime(400, now);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-                osc.start(now);
-                osc.stop(now + 0.05);
-            } else if (type === 'flip') {
-                osc.frequency.setValueAtTime(600, now);
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-            } else if (type === 'error') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
-            } else if (type === 'win') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.setValueAtTime(659.25, now + 0.1);
-                osc.frequency.setValueAtTime(783.99, now + 0.2);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
-            }
+        function updateLangUI() {
+            document.getElementById('lang-toggle').innerHTML = currentLang === 'TR' ? '🇹🇷 TR' : '🇦🇿 AZ';
+            document.getElementById('btn-daily').innerText = currentLang === 'TR' ? 'Günün Kelimesi' : 'Günün Sözü';
+            document.getElementById('btn-unlimited').innerText = currentLang === 'TR' ? 'Sınırsız Mod' : 'Limitsiz Mod';
+            document.getElementById('stats-title').innerText = currentLang === 'TR' ? 'İstatistikler' : 'Statistikalar';
+            document.getElementById('lbl-played').innerText = currentLang === 'TR' ? 'Oyun' : 'Oyun';
+            document.getElementById('lbl-win').innerText = currentLang === 'TR' ? '% Kazan' : '% Qazan';
+            document.getElementById('lbl-streak').innerText = currentLang === 'TR' ? 'Seri' : 'Seriya';
+            document.getElementById('lbl-max').innerText = currentLang === 'TR' ? 'En İyi' : 'Ən Yaxşı';
+            document.getElementById('btn-restart').innerText = currentLang === 'TR' ? 'Yeni Oyun Oyna 🔄' : 'Yeni Oyun Oyna 🔄';
+            document.getElementById('btn-share').innerText = currentLang === 'TR' ? 'Skoru Paylaş 📋' : 'Nəticəni Paylaş 📋';
         }
 
-        function switchMode(mode) {
+        function renderKeyboard() {
+            const kbContainer = document.getElementById('keyboard');
+            kbContainer.innerHTML = '';
+            const layout = KEYBOARDS[currentLang];
+
+            layout.forEach(rowKeys => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'k-row';
+                
+                rowKeys.forEach(key => {
+                    const btn = document.createElement('button');
+                    btn.className = 'key';
+                    if (key === 'ENTER' || key === 'DEL') btn.classList.add('wide');
+                    
+                    btn.textContent = key === 'DEL' ? '⌫' : key;
+                    btn.id = `key-${key}`;
+                    
+                    // Native App için Touch/Click olaylarını güvenli birleştirme
+                    btn.addEventListener('pointerdown', (e) => {
+                        e.preventDefault(); // WebView'da metin seçimini ve ghost click'i engeller
+                        handleInput(key);
+                    });
+                    
+                    rowDiv.appendChild(btn);
+                });
+                kbContainer.appendChild(rowDiv);
+            });
+        }
+
+        function switchMode(mode, forceReset = false) {
             currentMode = mode;
+            localStorage.setItem('km_mode', mode);
             document.getElementById('btn-daily').classList.toggle('active', mode === 'daily');
             document.getElementById('btn-unlimited').classList.toggle('active', mode === 'unlimited');
-            document.getElementById('btn-restart').style.display = mode === 'unlimited' ? 'block' : 'none';
-            resetBoard();
             
+            // Eğer dil veya mod zorla değiştirildiyse eski kaydı sil ve sıfırla
+            if (forceReset || isGameOver || !loadGameState()) {
+                resetBoard();
+                setupGameLogic(mode);
+                saveGameState();
+            } else {
+                applySavedBoardState();
+            }
+            
+            document.getElementById('btn-restart').style.display = mode === 'unlimited' && isGameOver ? 'block' : 'none';
+        }
+
+        function setupGameLogic(mode) {
+            const wordList = currentLang === 'TR' ? WORDS_TR : WORDS_AZ;
+
             if (mode === 'daily') {
                 const today = new Date().toISOString().slice(0, 10);
                 let hash = 0;
                 for (let i = 0; i < today.length; i++) hash = today.charCodeAt(i) + ((hash << 5) - hash);
-                const index = Math.abs(hash) % KELIMELER.length;
-                targetWord = KELIMELER[index];
+                const index = Math.abs(hash) % wordList.length;
+                targetWord = wordList[index];
             } else {
-                targetWord = KELIMELER[Math.floor(Math.random() * KELIMELER.length)];
+                targetWord = wordList[Math.floor(Math.random() * wordList.length)];
             }
         }
 
@@ -746,35 +478,38 @@
             currentRow = 0;
             currentTile = 0;
             isGameOver = false;
+            hintUsed = false;
             boardState = Array(6).fill("");
-            initBoard();
             
-            document.querySelectorAll('.key').forEach(k => {
-                k.removeAttribute('data-state');
-            });
+            document.getElementById('hint-btn').classList.remove('used');
+            initBoard();
+            document.querySelectorAll('.key').forEach(k => k.removeAttribute('data-state'));
             document.getElementById('btn-share').style.display = 'none';
+            document.getElementById('btn-restart').style.display = 'none';
         }
 
         function handleInput(key) {
-            initAudio();
+            // DEBOUNCE: Çift basmayı (Ghost Click) %100 engeller
+            const now = Date.now();
+            if (now - lastInputTime < DEBOUNCE_MS) return; 
+            lastInputTime = now;
+
             if (isGameOver) return;
 
-            if (key === 'BACKSPACE') {
+            if (key === 'DEL') {
                 if (currentTile > 0) {
                     currentTile--;
                     const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
                     tile.textContent = '';
                     tile.removeAttribute('data-state');
                     boardState[currentRow] = boardState[currentRow].slice(0, -1);
-                    playSound('key');
                 }
             } else if (key === 'ENTER') {
                 if (currentTile === 5) {
                     checkRow();
                 } else {
-                    showToast("Eksik Harf!");
+                    showToast(currentLang === 'TR' ? "Eksik Harf!" : "Əksik Hərf!");
                     shakeRow(currentRow);
-                    playSound('error');
                 }
             } else if (currentTile < 5 && key.length === 1) {
                 const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
@@ -782,39 +517,22 @@
                 tile.setAttribute('data-state', 'pop');
                 boardState[currentRow] += key;
                 currentTile++;
-                playSound('key');
             }
-        }
-
-        function handlePhysicalKeyboard(e) {
-            if (e.ctrlKey || e.altKey || e.metaKey) return;
-            let key = e.key.toUpperCase();
-            if (key === 'BACKSPACE' || key === 'ENTER') {
-                handleInput(key);
-            } else if (/^[A-ZÇĞİÖŞÜ]$/i.test(key)) {
-                if (key === 'I') key = 'I';
-                if (key === 'i') key = 'İ';
-                handleInput(key);
-            }
+            saveGameState();
         }
 
         function checkRow() {
             const guess = boardState[currentRow];
             const target = targetWord;
-
             const rowTiles = [];
-            for (let i = 0; i < 5; i++) {
-                rowTiles.push(document.getElementById(`tile-${currentRow}-${i}`));
-            }
+            for (let i = 0; i < 5; i++) rowTiles.push(document.getElementById(`tile-${currentRow}-${i}`));
 
             const targetLetterCounts = {};
-            for (let char of target) {
-                targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1;
-            }
+            for (let char of target) targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1;
 
             const tileStates = Array(5).fill('absent');
 
-            // Correct match check
+            // 1. Aşama: Doğru yerdeki harfleri bul
             for (let i = 0; i < 5; i++) {
                 if (guess[i] === target[i]) {
                     tileStates[i] = 'correct';
@@ -822,7 +540,7 @@
                 }
             }
 
-            // Present match check
+            // 2. Aşama: Yanlış yerdeki harfleri bul
             for (let i = 0; i < 5; i++) {
                 if (tileStates[i] !== 'correct' && targetLetterCounts[guess[i]] > 0) {
                     tileStates[i] = 'present';
@@ -830,48 +548,44 @@
                 }
             }
 
-            // Animate tiles
+            // Animasyonla harfleri çevirme
             rowTiles.forEach((tile, i) => {
                 setTimeout(() => {
                     tile.classList.add('flip');
                     tile.setAttribute('data-state', tileStates[i]);
                     updateKey(guess[i], tileStates[i]);
-                    playSound('flip');
-                }, i * 250);
+                }, i * 200);
             });
 
             setTimeout(() => {
                 if (guess === target) {
                     isGameOver = true;
-                    playSound('win');
                     updateStats(true);
-                    showToast("Tebrikler! 🎉");
+                    showToast("🎉");
                     document.getElementById('btn-share').style.display = 'block';
-                    setTimeout(showStats, 1200);
+                    if (currentMode === 'unlimited') document.getElementById('btn-restart').style.display = 'block';
+                    setTimeout(showStats, 1000);
                 } else if (currentRow === 5) {
                     isGameOver = true;
-                    playSound('error');
                     updateStats(false);
-                    showToast(`Doğru Kelime: ${target}`);
+                    showToast(target);
                     document.getElementById('btn-share').style.display = 'block';
+                    if (currentMode === 'unlimited') document.getElementById('btn-restart').style.display = 'block';
                     setTimeout(showStats, 1500);
                 } else {
                     currentRow++;
                     currentTile = 0;
                 }
-            }, 1500);
+                saveGameState();
+            }, 1200);
         }
 
         function updateKey(letter, state) {
-            const keys = document.querySelectorAll('.key');
-            keys.forEach(k => {
-                if (k.textContent === letter) {
-                    const currentState = k.getAttribute('data-state');
-                    if (currentState !== 'correct') {
-                        k.setAttribute('data-state', state);
-                    }
-                }
-            });
+            const k = document.getElementById(`key-${letter}`);
+            if (k) {
+                const currentState = k.getAttribute('data-state');
+                if (currentState !== 'correct') k.setAttribute('data-state', state);
+            }
         }
 
         function shakeRow(row) {
@@ -884,12 +598,20 @@
 
         function useHint() {
             if (isGameOver) return;
-            // Find an unrevealed correct letter
+            if (hintUsed) {
+                showToast(currentLang === 'TR' ? "İpucu hakkın bitti!" : "İpucu haqqınız bitdi!");
+                return;
+            }
+
+            // Doğru harfi tahtaya otomatik yazar
             for (let i = 0; i < 5; i++) {
                 const tile = document.getElementById(`tile-${currentRow}-${i}`);
                 if (!tile.textContent) {
                     handleInput(targetWord[i]);
-                    showToast("İpucu harfi eklendi!");
+                    hintUsed = true;
+                    document.getElementById('hint-btn').classList.add('used');
+                    showToast(currentLang === 'TR' ? "İpucu kullanıldı" : "İpucu istifadə edildi");
+                    saveGameState();
                     break;
                 }
             }
@@ -902,6 +624,7 @@
             setTimeout(() => { toast.style.display = 'none'; }, 2000);
         }
 
+        // --- KAYIT SİSTEMLERİ ---
         function loadStats() {
             const data = localStorage.getItem('km_stats');
             if (data) stats = JSON.parse(data);
@@ -919,6 +642,76 @@
             localStorage.setItem('km_stats', JSON.stringify(stats));
         }
 
+        function saveGameState() {
+            const state = {
+                lang: currentLang, mode: currentMode, targetWord, currentRow, 
+                currentTile, isGameOver, hintUsed, boardState
+            };
+            localStorage.setItem('km_gameState', JSON.stringify(state));
+        }
+
+        function loadGameState() {
+            const data = localStorage.getItem('km_gameState');
+            if (!data) return false;
+            
+            const state = JSON.parse(data);
+            // Sadece aynı dil ve aynı modsa yükle, günlük kelime ise ve gün değiştiyse yükleme
+            if (state.lang !== currentLang || state.mode !== currentMode) return false;
+            
+            if (state.mode === 'daily') {
+                const wordList = currentLang === 'TR' ? WORDS_TR : WORDS_AZ;
+                const today = new Date().toISOString().slice(0, 10);
+                let hash = 0;
+                for (let i = 0; i < today.length; i++) hash = today.charCodeAt(i) + ((hash << 5) - hash);
+                const expectedWord = wordList[Math.abs(hash) % wordList.length];
+                if (state.targetWord !== expectedWord) return false; // Gün değişmiş, yeni kelime gelmiş
+            }
+
+            targetWord = state.targetWord; currentRow = state.currentRow; 
+            currentTile = state.currentTile; isGameOver = state.isGameOver;
+            hintUsed = state.hintUsed; boardState = state.boardState || Array(6).fill("");
+            return true;
+        }
+
+        function applySavedBoardState() {
+            initBoard();
+            if (hintUsed) document.getElementById('hint-btn').classList.add('used');
+            
+            // Geçmiş satırları anında kontrol edip renklendir
+            for (let r = 0; r < currentRow; r++) {
+                const guess = boardState[r];
+                const targetLetterCounts = {};
+                for (let char of targetWord) targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1;
+                
+                const tileStates = Array(5).fill('absent');
+                for (let i = 0; i < 5; i++) {
+                    if (guess[i] === targetWord[i]) { tileStates[i] = 'correct'; targetLetterCounts[guess[i]]--; }
+                }
+                for (let i = 0; i < 5; i++) {
+                    if (tileStates[i] !== 'correct' && targetLetterCounts[guess[i]] > 0) { tileStates[i] = 'present'; targetLetterCounts[guess[i]]--; }
+                }
+
+                for (let c = 0; c < 5; c++) {
+                    const tile = document.getElementById(`tile-${r}-${c}`);
+                    tile.textContent = guess[c];
+                    tile.setAttribute('data-state', tileStates[c]);
+                    updateKey(guess[c], tileStates[c]);
+                }
+            }
+
+            // Mevcut yarım kalan satırı doldur
+            const currentGuess = boardState[currentRow] || "";
+            for (let c = 0; c < currentGuess.length; c++) {
+                const tile = document.getElementById(`tile-${currentRow}-${c}`);
+                tile.textContent = currentGuess[c];
+            }
+
+            if (isGameOver) {
+                document.getElementById('btn-share').style.display = 'block';
+                if (currentMode === 'unlimited') document.getElementById('btn-restart').style.display = 'block';
+            }
+        }
+
         function showStats() {
             document.getElementById('st-played').textContent = stats.played;
             document.getElementById('st-win').textContent = stats.played ? Math.round((stats.wins / stats.played) * 100) : 0;
@@ -927,18 +720,17 @@
             
             const details = document.getElementById('end-game-details');
             if (isGameOver) {
-                details.innerHTML = `<p style="margin-top:10px; font-weight:bold; color:${boardState[currentRow] === targetWord ? '#538d4e' : '#ff4d4d'}">
-                    ${boardState[currentRow] === targetWord ? 'Tebrikler, Kazandınız!' : 'Aramıza Tekrar Katıl: ' + targetWord}
+                const winMsg = currentLang === 'TR' ? 'Tebrikler, Kazandınız!' : 'Təbriklər, Qazandınız!';
+                const loseMsg = currentLang === 'TR' ? 'Kelime: ' : 'Söz: ';
+                const won = (currentRow < 6 && boardState[currentRow-1] === targetWord) || (boardState[5] === targetWord);
+                
+                details.innerHTML = `<p style="margin-top:15px; font-weight:bold; font-size:1.2rem; color:${won ? '#538d4e' : '#e57373'}">
+                    ${won ? winMsg : loseMsg + targetWord}
                 </p>`;
             } else {
                 details.innerHTML = '';
             }
-
             document.getElementById('modal-stats').style.display = 'flex';
-        }
-
-        function showHelp() {
-            document.getElementById('modal-help').style.display = 'flex';
         }
 
         function closeModals() {
@@ -947,23 +739,28 @@
 
         function restartGame() {
             closeModals();
-            switchMode('unlimited');
+            switchMode('unlimited', true);
         }
 
         function shareResult() {
-            let emojiBoard = `KelimeMatik (${currentMode === 'daily' ? 'Günün Kelimesi' : 'Sınırsız'}) ${currentRow + 1}/6\n\n`;
-            for (let r = 0; r <= currentRow; r++) {
+            const title = currentLang === 'TR' ? 'KelimeMatik Pro' : 'SözMatik Pro';
+            const modeTxt = currentMode === 'daily' ? (currentLang === 'TR' ? 'Günün Kelimesi' : 'Günün Sözü') : (currentLang === 'TR' ? 'Sınırsız Mod' : 'Limitsiz Mod');
+            let emojiBoard = `${title} (${modeTxt}) ${isGameOver && boardState[currentRow > 5 ? 5 : (boardState[currentRow]===targetWord ? currentRow : currentRow-1)] === targetWord ? (currentRow === 6 && boardState[5] !== targetWord ? 'X' : (currentRow === 6 ? 6 : currentRow)) : 'X'}/6\n\n`;
+            
+            const endRow = (isGameOver && currentRow < 6) ? currentRow : (currentRow === 6 ? 5 : currentRow-1);
+            
+            for (let r = 0; r <= endRow; r++) {
                 for (let c = 0; c < 5; c++) {
-                    const tile = document.getElementById(`tile-${r}-${c}`);
-                    const state = tile.getAttribute('data-state');
+                    const state = document.getElementById(`tile-${r}-${c}`).getAttribute('data-state');
                     if (state === 'correct') emojiBoard += '🟩';
                     else if (state === 'present') emojiBoard += '🟨';
                     else emojiBoard += '⬛';
                 }
                 emojiBoard += '\n';
             }
+            
             navigator.clipboard.writeText(emojiBoard);
-            showToast("Skor Panoya Kopyalandı!");
+            showToast(currentLang === 'TR' ? "Sonuç Kopyalandı!" : "Nəticə Kopyalandı!");
         }
     </script>
 </body>
